@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import struct
 
 from bleak import discover
 from bleak import BleakClient
@@ -26,12 +27,23 @@ async def scan():
         devices_dict[dev[i].address].append(dev[i].metadata["uuids"])
         devices_list.append(dev[i].address)
 
+def split_into_chunks(byte_array, chunk_size):
+    return [byte_array[i:i+chunk_size] for i in range(0, len(byte_array), chunk_size)]
+
 #An easy notify function, just print the recieve data
 def notification_handler(sender, data):
-    # print(', '.join('{:02x}'.format(x) for x in data))
-    # print(type(data))
-    st_bytes = data.decode('ascii')
-    print(st_bytes)
+    print(', '.join('{:02x}'.format(x) for x in data))
+    for x in split_into_chunks(data,4):
+        print(''.join('{:02x}'.format(y) for y in x))
+        # print("x: " + str(x))
+        print(struct.unpack('f', x))
+    print(type(data))
+    # print("receving")
+    # st_bytes = data.decode('ascii')
+    # print(int.from_bytes(data, byteorder="little", signed=True))
+    # print(data)
+
+    # print(st_bytes)
 
 async def run(address, debug=False):
     log = logging.getLogger(__name__)
@@ -79,9 +91,11 @@ async def run(address, debug=False):
                 try:
                     while True:
                         #Notify the data from the device
-                        await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
-                        await asyncio.sleep(5.0)
-                        await client.stop_notify(CHARACTERISTIC_UUID)
+                        # await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
+                        # await asyncio.sleep(5.0)
+                        # await client.stop_notify(CHARACTERISTIC_UUID)
+                        # print("send")
+                        await client.write_gatt_char(UART_RX_CHAR_UUID, data=b'\x12\x34', response=None)
                 except KeyboardInterrupt:
                     print("Exiting...")
 
@@ -100,6 +114,7 @@ if __name__ == "__main__":
     # print("Address is " + address)
 
     #Run notify event
-    loop = asyncio.get_event_loop()
-    loop.set_debug(True)
-    loop.run_until_complete(run(address, True))
+    # loop = asyncio.get_event_loop()
+    # loop.set_debug(True)
+    # loop.run_until_complete(run(address, True))
+    asyncio.run(run(address, True))
