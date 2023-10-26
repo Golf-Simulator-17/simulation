@@ -10,7 +10,7 @@ UART_SERVICE_UUID = "49535343-FE7D-4AE5-8FA9-9FAFD205E455"
 UART_RX_CHAR_UUID = "49535343-8841-43F4-A8D4-ECBE34729BB3"
 UART_TX_CHAR_UUID = "49535343-1E4D-4BD9-BA61-23C647249616"
 TEST_CHAR = "49535343-4c8a-39b3-2f49-511cff073b7e"
-address = "44:B7:D0:2D:66:FD"
+address = "B900376F-4577-CA3A-EC9E-E3836929A78A"
 
 devices_dict = {}
 devices_list = []
@@ -37,8 +37,8 @@ def notification_handler(sender, data):
     for x in split_into_chunks(data,4):
         print(''.join('{:02x}'.format(y) for y in x))
         # print("x: " + str(x))
-        print(struct.unpack('f', x))
-    print(type(data))
+    #     print(struct.unpack('f', x))
+    # print(type(data))
     # print("receving")
     # st_bytes = data.decode('ascii')
     # print(int.from_bytes(data, byteorder="little", signed=True))
@@ -96,7 +96,11 @@ async def run(address, debug=False):
                         # await asyncio.sleep(5.0)
                         # await client.stop_notify(CHARACTERISTIC_UUID)
                         # print("send")
-                        await client.write_gatt_char(UART_RX_CHAR_UUID, data=b'\x12\x34', response=None)
+                       # await client.write_gatt_char(UART_RX_CHAR_UUID, data=b'\x12\x34', response=None)
+                        await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
+                        await client.write_gatt_char(CHARACTERISTIC_UUID, b'~4', response=True)
+                        await asyncio.sleep(0.5)  # Sleeping just to make sure the response is not missed...
+                        await client.stop_notify(CHARACTERISTIC_UUID)
                 except KeyboardInterrupt:
                     print("Exiting...")
 
@@ -117,7 +121,9 @@ if __name__ == "__main__":
     #Run notify event
     # loop = asyncio.get_event_loop()
     # loop.set_debug(True) 
-    # loop.run_until_complete(run(address, True))
+    # # loop.run_until_complete(run(address, True))
+
+
     try:
         asyncio.run(run(address, True))
     except(bleak.exc.BleakDeviceNotFoundError):
