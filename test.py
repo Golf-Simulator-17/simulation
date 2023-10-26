@@ -4,6 +4,7 @@ import struct
 
 from bleak import discover
 from bleak import BleakClient
+import bleak
 
 UART_SERVICE_UUID = "49535343-FE7D-4AE5-8FA9-9FAFD205E455"
 UART_RX_CHAR_UUID = "49535343-8841-43F4-A8D4-ECBE34729BB3"
@@ -90,7 +91,7 @@ async def run(address, debug=False):
                 CHARACTERISTIC_UUID = UART_TX_CHAR_UUID
                 try:
                     while True:
-                        #Notify the data from the device
+                        # Notify the data from the device
                         # await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
                         # await asyncio.sleep(5.0)
                         # await client.stop_notify(CHARACTERISTIC_UUID)
@@ -100,7 +101,7 @@ async def run(address, debug=False):
                     print("Exiting...")
 
 if __name__ == "__main__":
-    print("Scanning for peripherals...")
+    print("Connecting to Bluetooth module...")
 
     # # Build an event loop
     # loop = asyncio.get_event_loop()
@@ -115,6 +116,10 @@ if __name__ == "__main__":
 
     #Run notify event
     # loop = asyncio.get_event_loop()
-    # loop.set_debug(True)
+    # loop.set_debug(True) 
     # loop.run_until_complete(run(address, True))
-    asyncio.run(run(address, True))
+    try:
+        asyncio.run(run(address, True))
+    except(bleak.exc.BleakDeviceNotFoundError):
+        print("Device not found. Are you sure it's on?")
+
