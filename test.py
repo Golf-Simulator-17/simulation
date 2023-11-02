@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import struct
+import csv 
 
 from bleak import discover
 from bleak import BleakClient
@@ -15,7 +16,8 @@ address = "B900376F-4577-CA3A-EC9E-E3836929A78A"
 devices_dict = {}
 devices_list = []
 receive_data = []
-
+csv_filename = "received_data.csv"
+fmt = '<d'
 #To discover BLE devices nearby 
 async def scan():
     dev = await discover()
@@ -33,11 +35,25 @@ def split_into_chunks(byte_array, chunk_size):
 
 #An easy notify function, just print the recieve data
 def notification_handler(sender, data):
-    print(', '.join('{:02x}'.format(x) for x in data))
-    for x in split_into_chunks(data,4):
-        print(''.join('{:02x}'.format(y) for y in x))
-        # print("x: " + str(x))
-    #     print(struct.unpack('f', x))
+    #print(data)
+   # print(', '.join('{:02x}'.format(x) for x in data))
+    #csv_writer.writerow((', '.join('{:02x}'.format(x) for x in data)))
+    with open(csv_filename, mode='a', newline='') as csv_file:
+        csv_writer = csv.writer(csv_file)
+    
+        for x in split_into_chunks(data, 4):
+            original_values = [str(y) for y in x]
+            #print(original_values)
+            hex_string = ''.join('{:02x}'.format(y) for y in x)
+            print(hex_string)
+            hex_bytes = bytes.fromhex(hex_string)
+            decimal_value = struct.unpack('f', hex_bytes)[0]
+            print(decimal_value)
+            csv_writer.writerow([decimal_value])
+
+
+    # print("x: " + str(x))
+    # print(struct.unpack('f', x))
     # print(type(data))
     # print("receving")
     # st_bytes = data.decode('ascii')
@@ -103,7 +119,7 @@ async def run(address, debug=False):
                         await client.stop_notify(CHARACTERISTIC_UUID)
                 except KeyboardInterrupt:
                     print("Exiting...")
-
+2
 if __name__ == "__main__":
     print("Connecting to Bluetooth module...")
 
@@ -128,4 +144,5 @@ if __name__ == "__main__":
         asyncio.run(run(address, True))
     except(bleak.exc.BleakDeviceNotFoundError):
         print("Device not found. Are you sure it's on?")
+    csv_file.close()
 
