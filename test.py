@@ -13,6 +13,8 @@ UART_RX_CHAR_UUID = "49535343-8841-43F4-A8D4-ECBE34729BB3"
 UART_TX_CHAR_UUID = "49535343-1E4D-4BD9-BA61-23C647249616"
 TEST_CHAR = "49535343-4c8a-39b3-2f49-511cff073b7e"
 new_address = "40:84:32:58:FB:05"
+sam_address = "44:B7:D0:2D:66:FD"
+
 
 #address = "B900376F-4577-CA3A-EC9E-E3836929A78A"
 
@@ -21,6 +23,7 @@ devices_list = []
 receive_data = []
 csv_filename = "received_data" + time.ctime() + ".csv"
 fmt = '<d'
+received = False
 #To discover BLE devices nearby 
 async def scan():
     dev = await discover()
@@ -38,6 +41,7 @@ def split_into_chunks(byte_array, chunk_size):
 
 #An easy notify function, just print the recieve data
 def notification_handler(sender, data):
+    received = True
     #print(data)
     print(', '.join('{:02x}'.format(x) for x in data))
     #csv_writer.writerow((', '.join('{:02x}'.format(x) for x in data)))
@@ -110,9 +114,21 @@ async def run(address, debug=False):
         CHARACTERISTIC_UUID = UART_TX_CHAR_UUID
         try:
             print("awakening . . .")
-            await client.write_gatt_char(UART_RX_CHAR_UUID, data="iiiiiiiiii".encode(), response=None)
+            # while True:
+            while (received == False):
+                await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+                # await client.write_gatt_char(UART_RX_CHAR_UUID, data="iiiiiiiiii".encode(), response=None)
+                # await client.write_gatt_char(UART_RX_CHAR_UUID, data="iiiiiiiiii".encode(), response=None)
+                # await client.write_gatt_char(UART_RX_CHAR_UUID, data="iiiiiiiiii".encode(), response=None)
+                # await client.write_gatt_char(UART_RX_CHAR_UUID, data="iiiiiiiiii".encode(), response=None)
+                await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
+                    # await client.write_gatt_char(CHARACTERISTIC_UUID, input().encode(), response=True)
+                await asyncio.sleep(0.5)  # Sleeping just to make sure the response is not missed...
+                await client.stop_notify(CHARACTERISTIC_UUID)
             while True:
                 try:
+                    # await client.write_gatt_char(UART_RX_CHAR_UUID, data="iiiiiiiiii".encode(), response=None)
+
                     print("receiving . . .")
                 # Notify the data from the device
                 # await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
@@ -127,10 +143,24 @@ async def run(address, debug=False):
                 except KeyboardInterrupt:
                     print("sleeping ... ")
                     await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+                    await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+                    await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+                    await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+                    await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+                    await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+
                 
             
         except KeyboardInterrupt:
             print("Exiting...")
+            #  ... ")
+            await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+            await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+            await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+            await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+            await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+            await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+
 
 if __name__ == "__main__":
     print("Connecting to Bluetooth module...")
@@ -153,7 +183,7 @@ if __name__ == "__main__":
 
 
     try:
-        asyncio.run(run(new_address, True))
+        asyncio.run(run(sam_address, True))
     except(bleak.exc.BleakDeviceNotFoundError):
         print("Device not found. Are you sure it's on?")
     
