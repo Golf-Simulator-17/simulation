@@ -6,6 +6,7 @@ import datetime
 # from mpl_toolkits.mplot3d import Axes3D
 from scipy import integrate
 
+
 def velocity(initial_velocity, acceleration, time):
     velocity = np.zeros(len(acceleration))
     for i in range(1, len(time)):
