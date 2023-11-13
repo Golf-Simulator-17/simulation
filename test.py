@@ -6,17 +6,20 @@ import csv
 from bleak import discover
 from bleak import BleakClient
 import bleak
+import time
 
 UART_SERVICE_UUID = "49535343-FE7D-4AE5-8FA9-9FAFD205E455"
 UART_RX_CHAR_UUID = "49535343-8841-43F4-A8D4-ECBE34729BB3"
 UART_TX_CHAR_UUID = "49535343-1E4D-4BD9-BA61-23C647249616"
 TEST_CHAR = "49535343-4c8a-39b3-2f49-511cff073b7e"
+new_address = "40:84:32:58:FB:05"
+
 #address = "B900376F-4577-CA3A-EC9E-E3836929A78A"
 
 devices_dict = {}
 devices_list = []
 receive_data = []
-csv_filename = "received_data.csv"
+csv_filename = "received_data" + time.ctime() + ".csv"
 fmt = '<d'
 #To discover BLE devices nearby 
 async def scan():
@@ -36,20 +39,20 @@ def split_into_chunks(byte_array, chunk_size):
 #An easy notify function, just print the recieve data
 def notification_handler(sender, data):
     #print(data)
-   # print(', '.join('{:02x}'.format(x) for x in data))
+    print(', '.join('{:02x}'.format(x) for x in data))
     #csv_writer.writerow((', '.join('{:02x}'.format(x) for x in data)))
     with open(csv_filename, mode='a', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
     
         for x in split_into_chunks(data, 4):
             original_values = [str(y) for y in x]
-            #print(original_values)
+            # print(original_values)
             hex_string = ''.join('{:02x}'.format(y) for y in x)
-            print(hex_string)
+            # print(hex_string)
             hex_bytes = bytes.fromhex(hex_string)
             decimal_value = struct.unpack('f', hex_bytes)[0]
-            print(decimal_value)
-            csv_writer.writerow([decimal_value])
+            # print(decimal_value)
+            csv_writer.writerow([decimal_value, hex_bytes])
 
 
     # print("x: " + str(x))
@@ -104,45 +107,53 @@ async def run(address, debug=False):
                 #     )
 
                 #Characteristic uuid
-                CHARACTERISTIC_UUID = UART_TX_CHAR_UUID
+        CHARACTERISTIC_UUID = UART_TX_CHAR_UUID
+        try:
+            print("awakening . . .")
+            await client.write_gatt_char(UART_RX_CHAR_UUID, data="iiiiiiiiii".encode(), response=None)
+            while True:
                 try:
-                    while True:
-                        # Notify the data from the device
-                        # await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
-                        # await asyncio.sleep(5.0)
-                        # await client.stop_notify(CHARACTERISTIC_UUID)
-                        # print("send")
-                       # await client.write_gatt_char(UART_RX_CHAR_UUID, data=b'\x12\x34', response=None)
-                        await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
-                        await client.write_gatt_char(CHARACTERISTIC_UUID, input().encode(), response=True)
-                        await asyncio.sleep(0.5)  # Sleeping just to make sure the response is not missed...
-                        await client.stop_notify(CHARACTERISTIC_UUID)
-                    
+                    print("receiving . . .")
+                # Notify the data from the device
+                # await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
+                # await asyncio.sleep(5.0)
+                # await client.stop_notify(CHARACTERISTIC_UUID)
+                # print("send")
+                    # await client.write_gatt_char(UART_RX_CHAR_UUID, data="aa55332211".encode(), response=None)
+                    await client.start_notify(CHARACTERISTIC_UUID, notification_handler)
+                    # await client.write_gatt_char(CHARACTERISTIC_UUID, input().encode(), response=True)
+                    await asyncio.sleep(0.5)  # Sleeping just to make sure the response is not missed...
+                    await client.stop_notify(CHARACTERISTIC_UUID)
                 except KeyboardInterrupt:
-                    print("Exiting...")
+                    print("sleeping ... ")
+                    await client.write_gatt_char(UART_RX_CHAR_UUID, data="cccccccccc".encode(), response=None)
+                
+            
+        except KeyboardInterrupt:
+            print("Exiting...")
 
 if __name__ == "__main__":
     print("Connecting to Bluetooth module...")
 
     # # Build an event loop
-    loop = asyncio.get_event_loop()
-    # Run the discover event
-    loop.run_until_complete(scan())
+    # loop = asyncio.get_event_loop()
+    # # Run the discover event
+    # loop.run_until_complete(scan())
 
-    # let user chose the device
-    index = input('please select device from 0 to ' + str(len(devices_list)) + ":")
-    index = int(index)
-    address = devices_list[index]
-    print("Address is " + address)
+    # # let user chose the device
+    # index = input('please select device from 0 to ' + str(len(devices_list)) + ":")
+    # index = int(index)
+    # address = devices_list[index]
+    # print("Address is " + address)
 
-    # Run notify event
-    loop = asyncio.get_event_loop()
-    loop.set_debug(True) 
-    loop.run_until_complete(run(address, True))
+    # # Run notify event
+    # loop = asyncio.get_event_loop()
+    # loop.set_debug(True) 
+    # loop.run_until_complete(run(address, True))
 
 
     try:
-        asyncio.run(run(address, True))
+        asyncio.run(run(new_address, True))
     except(bleak.exc.BleakDeviceNotFoundError):
         print("Device not found. Are you sure it's on?")
     
