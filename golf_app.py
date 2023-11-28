@@ -25,7 +25,7 @@ async def scan(breadboard):
         if (breadboard):
             device = await BleakScanner.find_device_by_name("PmodBLE-66FD")
         else:
-            device = await BleakScanner.find_device_by_name("Rn4871-66FD")
+            device = await BleakScanner.find_device_by_name("RN4871-FB05")
         
         if not device:
             raise Exception("Could not find device")
@@ -51,6 +51,7 @@ def notification_handler(sender, data):
     RECEIVED = True
     with open(csv_filename, mode='a', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
+        print(data)
         for x in split_into_chunks(data, 4):
             original_values = [str(y) for y in x]
             hex_string = ''.join('{:02x}'.format(y) for y in x)
@@ -110,7 +111,7 @@ if __name__ == "__main__":
                                                        ##                                          ##                       
           ''')
     print("Finding device . . .")
-    device = asyncio.run(scan(breadboard=True))
+    device = asyncio.run(scan(breadboard=False))
     asyncio.run(run(device))
 
     if os.path.exists(csv_filename):
