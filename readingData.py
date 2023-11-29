@@ -18,12 +18,16 @@ def analysis():
     with open(file_path, newline='') as csvfile:
         data_reader = csv.reader(csvfile)
         temp_data = []
+        row_count = 1
         for row in data_reader:
             temp_data.append(float(row[0]))
-            if len(temp_data) == 6:
-                accelerometer_data.append(temp_data[:3])
-                gyroscope_data.append(temp_data[3:])
+            if len(temp_data) == 3 and row_count < 15:
+                accelerometer_data.append(temp_data)
                 temp_data = []
+            elif len(temp_data) == 3 and row_count >= 15:
+                gyroscope_data.append(temp_data)
+                temp_data = []
+            row_count += 1
 
     accelerometer_data = np.array(accelerometer_data)
     gyroscope_data = np.array(gyroscope_data)
@@ -56,8 +60,8 @@ def analysis():
     # Display the results
     print("Accelerometer Data:", accelerometer_data)
     print("Gyroscope Data:", gyroscope_data)
-    print("Velocity Data:", velocity_data)
-    print("Position Data:", position_data)
+    # print("Velocity Data:", velocity_data)
+    # print("Position Data:", position_data)
 
 def velocity(acceleration, time):
     velocity = np.zeros_like(acceleration)
