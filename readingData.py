@@ -10,8 +10,8 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from matplotlib.animation import FuncAnimation
 
-def analysis():
-    file_path = "received_data.csv"
+def analysis(file_path):
+    # file_path = "received_dataMon Nov 13 16:01:02 2023.csv"
     accelerometer_data = []
     gyroscope_data = []
 
@@ -37,20 +37,20 @@ def analysis():
     #Calculate Position 
     position_data = position(velocity_data, time_array)
     #graphPosition(position_data)
-    # Sample data for velocity
-    time = np.linspace(0, 5, num=100)  # Time from 0 to 5 seconds
-    initial_velocity = np.array([10, 15, 25])  # Initial velocity vector
-    gravity = np.array([0, 0, -9.81])  # Gravity vector
+    # # Sample data for velocity
+    # time = np.linspace(0, 5, num=100)  # Time from 0 to 5 seconds
+    # initial_velocity = np.array([10, 15, 25])  # Initial velocity vector
+    # gravity = np.array([0, 0, -9.81])  # Gravity vector
 
-    # Calculate velocity at each point in time (v = u + at)
-    velocity_data = np.array([initial_velocity + gravity * t for t in time])
+    # # Calculate velocity at each point in time (v = u + at)
+    # velocity_data = np.array([initial_velocity + gravity * t for t in time])
 
-    # Sample data for position (s = ut + 0.5at^2)
-    position_data = np.array([initial_velocity * t + 0.5 * gravity * t**2 for t in time])
+    # # Sample data for position (s = ut + 0.5at^2)
+    # position_data = np.array([initial_velocity * t + 0.5 * gravity * t**2 for t in time])
 
-    # Transpose the data for plotting
-    velocity_data = velocity_data.T
-    position_data = position_data.T
+    # # Transpose the data for plotting
+    # velocity_data = velocity_data.T
+    # position_data = position_data.T
 
     display_graphs(velocity_data, position_data)
     # Display the results
@@ -198,9 +198,10 @@ def display_graphs(velocity_data, position_data):
     graph_window.velocity_ani = animate_graph(fig_velocity, velocity_data, ax_velocity)
     graph_window.position_ani = animate_graph(fig_position, position_data, ax_position)
 
-def start_simulation():
+def start_simulation(filename):
     # Placeholder for future functionality
-    analysis()
+    
+    analysis(filename)
     pass
 
 def stop_simulation():
@@ -219,12 +220,13 @@ if __name__ == "__main__":
     background_label = tk.Label(root, image=background_photo)
     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
+    filename = "test"
     # Welcome Message
     welcome_label = tk.Label(root, text="Welcome to the Golf Simulator", font=("Arial", 24), bg="white")
     welcome_label.pack(pady=20)
 
     # Start and Stop Simulation buttons
-    start_button = ttk.Button(root, text="Start Simulation", command=start_simulation)
+    start_button = ttk.Button(root, text="Start Simulation", command=start_simulation(filename))
     start_button.pack(pady=10)  # Adding padding for spacing
 
     stop_button = ttk.Button(root, text="Stop Simulation", command=stop_simulation)
