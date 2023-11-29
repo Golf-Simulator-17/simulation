@@ -9,12 +9,13 @@ from readingData import *
 from bleak import BleakClient, BleakScanner, discover
 from datetime import datetime
 
+import threading
+
+
 UART_SERVICE_UUID = "49535343-FE7D-4AE5-8FA9-9FAFD205E455"
 UART_RX_CHAR_UUID = "49535343-8841-43F4-A8D4-ECBE34729BB3"
 UART_TX_CHAR_UUID = "49535343-1E4D-4BD9-BA61-23C647249616"
 
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-csv_filename = f"received_data_{timestamp}.csv"
 
 RECEIVED = False
 ACK_1 = False
@@ -22,10 +23,10 @@ ACK_2 = False
 
 async def scan(breadboard): 
     try:
-        if (breadboard):
+        if (False):
             device = await BleakScanner.find_device_by_name("PmodBLE-66FD")
         else:
-            device = await BleakScanner.find_device_by_name("RN4871-FB05")
+            device = await BleakScanner.find_device_by_name("RN4871-A909")
         
         if not device:
             raise Exception("Could not find device")
@@ -49,8 +50,13 @@ async def receive_data(client):
 def notification_handler(sender, data):
     global RECEIVED
     RECEIVED = True
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    csv_filename = f"hit_info/receivedData{timestamp}.csv"
+
+
     with open(csv_filename, mode='a', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
+
         print(data)
         for x in split_into_chunks(data, 4):
             original_values = [str(y) for y in x]
@@ -86,18 +92,41 @@ def split_into_chunks(byte_array, chunk_size):
 
 
 async def run(device):
+    global RECEIVED
+    global ACK_1
     async with BleakClient(device) as client:
-        while ACK_1 == False:
-            await send_data(client, "iiiiiiiiii")
-            await recevie_ack_1(client)
+        while (True):
+            print("Device connected somewhat . . .! Waiting for hit . . .")
+            while ACK_1 == False:
+                RECEIVED = False
+                print("Sending iiiii")
+                await send_data(client, "iiiiiiiiii")
+                await recevie_ack_1(client)
 
-        print("Device connected! Waiting for hit . . .")
-        while RECEIVED == False:
-            await receive_data(client)
+            print("Device connected! Waiting for hit . . .")
+            while RECEIVED == False:
+                ACK_1 = False
+                await receive_data(client)
 
-        await send_data(client, "cccccccccc")
-        print("Hit received! Simulation time!")
+            await send_data(client, "cccccccccc")
+            await send_data(client, "cccccccccc")
+            await send_data(client, "cccccccccc")
 
+            print("Hit received! Simulation time!")
+
+def gui_process():
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    files_processed = []
+    while True:
+        for file in os.listdir("hit_info"):
+            start = file.find("_") + 1
+            number = file[start:-4]
+            # print("Number:", numb?er)
+            if int (number) > int(timestamp):
+                if file not in files_processed:
+                    files_processed.append(file)
+                    print("Processing file:", file)
+                    start_simulation(file)
 
 if __name__ == "__main__":
     print('''
@@ -110,30 +139,47 @@ if __name__ == "__main__":
 #######   ####    #######  ##                #######    ###   ##   ##  #######  #######  ##   ##    ###     ####    ##   ##  
                                                        ##                                          ##                       
           ''')
+    t1 = threading.Thread(target=gui_process)
+    t1.start()
     print("Finding device . . .")
     device = asyncio.run(scan(breadboard=False))
+    print(device)
     asyncio.run(run(device))
 
-    if os.path.exists(csv_filename):
-        root = tk.Tk()
-        root.title("Golf Simulator")
-        root.geometry("800x600")
 
-        # Load and set the background image
-        background_image = Image.open("golf_course.webp")
-        background_photo = ImageTk.PhotoImage(background_image)
-        background_label = tk.Label(root, image=background_photo)
-        background_label.place(x=0, y=0, relwidth=1, relheight=1)
+    # if os.path.exists(csv_filename):
+    #     root = tk.Tk()
+    #     root.title("Golf Simulator")
+    #     root.geometry("800x600")
 
-        # Welcome Message
-        welcome_label = tk.Label(root, text="Welcome to the Golf Simulator", font=("Arial", 24), bg="white")
-        welcome_label.pack(pady=20)
+    #     # Load and set the background image
+    #     background_image = Image.open("golf_course.webp")
+    #     background_photo = ImageTk.PhotoImage(background_image)
+    #     background_label = tk.Label(root, image=background_photo)
+    #     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        # Start and Stop Simulation buttons
-        start_button = ttk.Button(root, text="Start Simulation", command=start_simulation)
-        start_button.pack(pady=10)  # Adding padding for spacing
+    #     # Welcome Message
+    #     root = tk.Tk()
+    #     root.title("Golf Simulator")
+    #     root.geometry("800x600")
 
-        stop_button = ttk.Button(root, text="Stop Simulation", command=stop_simulation)
-        stop_button.pack(pady=10)  # Adding padding for spacing
+    #     # Load and set the background image
+    #     background_image = Image.open("golf_course.webp")
+    #     background_photo = ImageTk.PhotoImage(background_image)
+    #     background_label = tk.Label(root, image=background_photo)
+    #     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        root.mainloop()
+    #     # Welcome Message
+    #     welcome_label = tk.Label(root, text="Welcome to the Golf Simulator", font=("Arial", 24), bg="white")
+    #     welcome_label.pack(pady=20)
+
+    #     # Start and Stop Simulation buttons
+    #     start_button = ttk.Button(root, text="Start Simulation", command=start_simulation(csv_filename))
+    #     start_button.pack(pady=10)  # Adding padding for spacing
+
+    #     stop_button = ttk.Button(root, text="Stop Simulation", command=stop_simulation)
+    #     stop_button.pack(pady=10)  # Adding padding for spacing
+
+    #     root.mainloop()
+
+
