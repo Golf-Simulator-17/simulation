@@ -11,7 +11,7 @@ from PIL import Image, ImageTk
 from matplotlib.animation import FuncAnimation
 
 def analysis(file_path):
-    # file_path = "received_dataMon Nov 13 16:01:02 2023.csv"
+    file_path = "hit_info/receivedData20231130_162331.csv"
     accelerometer_data = []
     gyroscope_data = []
 
@@ -120,37 +120,6 @@ def graphPosition(position_data):
     # Display the plot
     plt.show()
 
-# This display is the one without animation. it also works but is just a line instead of animation
-# def display_graphs(velocity_data, position_data):
-#     # New window for graphs
-#     graph_window = tk.Toplevel()
-#     graph_window.title("Simulation Results")
-#     graph_window.geometry("1200x600")
-
-#     # Create and place velocity graph
-#     fig_velocity = Figure()
-#     ax_velocity = fig_velocity.add_subplot(111, projection='3d')
-#     ax_velocity.plot(velocity_data[:, 0], velocity_data[:, 1], velocity_data[:, 2])
-#     ax_velocity.set_xlabel('X Velocity')
-#     ax_velocity.set_ylabel('Y Velocity')
-#     ax_velocity.set_zlabel('Z Velocity')
-#     ax_velocity.set_title('3D Velocity Trajectory')
-#     canvas_velocity = FigureCanvasTkAgg(fig_velocity, master=graph_window)
-#     canvas_velocity.draw()
-#     canvas_velocity.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-#     # Create and place position graph
-#     fig_position = Figure()
-#     ax_position = fig_position.add_subplot(111, projection='3d')
-#     ax_position.plot(position_data[:, 0], position_data[:, 1], position_data[:, 2])
-#     ax_position.set_xlabel('X Displacement')
-#     ax_position.set_ylabel('Y Displacement')
-#     ax_position.set_zlabel('Z Displacement')
-#     ax_position.set_title('3D Displacement Trajectory')
-#     canvas_position = FigureCanvasTkAgg(fig_position, master=graph_window)
-#     canvas_position.draw()
-#     canvas_position.get_tk_widget().pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-
 def update_graph(num, data, line):
     # Make sure we only use the data up to the current frame
     line.set_data(data[:2, :num+1])
@@ -203,17 +172,14 @@ def display_graphs(velocity_data, position_data):
     graph_window.position_ani = animate_graph(fig_position, position_data, ax_position)
 
 def start_simulation(filename):
-    # Placeholder for future functionality
-    
-    analysis(filename)
+    #analysis(filename)
     pass
 
 def stop_simulation():
     # need to create stop code
     pass
 
-if __name__ == "__main__":
-
+def run_gui():
     root = tk.Tk()
     root.title("Golf Simulator")
     root.geometry("800x600")
@@ -224,7 +190,7 @@ if __name__ == "__main__":
     background_label = tk.Label(root, image=background_photo)
     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
-    filename = "test"
+    filename = "hit_info/receivedData20231130_162331.csv"
     # Welcome Message
     welcome_label = tk.Label(root, text="Welcome to the Golf Simulator", font=("Arial", 24), bg="white")
     welcome_label.pack(pady=20)
@@ -237,3 +203,6 @@ if __name__ == "__main__":
     stop_button.pack(pady=10)  # Adding padding for spacing
 
     root.mainloop()
+if __name__ == "__main__":
+
+    run_gui()
