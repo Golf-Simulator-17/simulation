@@ -10,6 +10,8 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from matplotlib.animation import FuncAnimation
 
+from golf_app import *
+
 def analysis(file_path):
     file_path = "hit_info/receivedData20231130_162331.csv"
     accelerometer_data = []
@@ -172,6 +174,7 @@ def display_graphs(velocity_data, position_data):
     graph_window.position_ani = animate_graph(fig_position, position_data, ax_position)
 
 def start_simulation(filename):
+    bitch()
     #analysis(filename)
     pass
 
@@ -206,3 +209,4 @@ def run_gui():
 if __name__ == "__main__":
 
     run_gui()
+    
