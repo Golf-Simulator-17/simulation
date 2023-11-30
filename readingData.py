@@ -175,7 +175,7 @@ def display_graphs(velocity_data, position_data):
 
 def start_simulation(filename):
     bitch()
-    #analysis(filename)
+    analysis(filename)
     pass
 
 def stop_simulation():
@@ -199,11 +199,11 @@ def run_gui():
     welcome_label.pack(pady=20)
 
     # Start and Stop Simulation buttons
-    start_button = ttk.Button(root, text="Start Simulation", command=start_simulation(filename))
+    start_button = ttk.Button(root, text="Start Simulation", command=lambda: start_simulation(filename))
     start_button.pack(pady=10)  # Adding padding for spacing
 
-    stop_button = ttk.Button(root, text="Stop Simulation", command=stop_simulation)
-    stop_button.pack(pady=10)  # Adding padding for spacing
+    # stop_button = ttk.Button(root, text="Stop Simulation", command=stop_simulation)
+    # stop_button.pack(pady=10)  # Adding padding for spacing
 
     root.mainloop()
 if __name__ == "__main__":
