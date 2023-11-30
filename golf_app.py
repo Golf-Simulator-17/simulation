@@ -113,7 +113,9 @@ async def run(device):
     global ACK_1
     async with BleakClient(str(device)) as client:
         facts = True
+        connected = False
         while (facts):
+            connected = client.is_connected()
             print("Device connected somewhat . . .! Waiting for hit . . .")
             while ACK_1 == False:
                 RECEIVED = False
@@ -132,6 +134,10 @@ async def run(device):
 
             print("Hit received! Simulation time!")
             facts = False
+    if(connected == False):
+        run(device)
+
+       
 
 def gui_process():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
