@@ -9,6 +9,8 @@ from matplotlib.figure import Figure
 from tkinter import ttk
 from PIL import Image, ImageTk
 from matplotlib.animation import FuncAnimation
+import asyncio
+import threading
 
 from golf_app import *
 
@@ -22,10 +24,10 @@ def analysis():
         row_count = 1
         for row in data_reader:
             temp_data.append(float(row[0]))
-            if len(temp_data) == 3 and row_count < 60:
+            if len(temp_data) == 3 and row_count < 30:
                 accelerometer_data.append(temp_data)
                 temp_data = []
-            elif len(temp_data) == 3 and row_count >= 60:
+            elif len(temp_data) == 3 and row_count >= 30:
                 gyroscope_data.append(temp_data)
                 temp_data = []
             row_count += 1
@@ -59,10 +61,10 @@ def analysis():
 
     display_graphs(velocity_data, position_data)
     # Display the results
-    # print("Accelerometer Data:", accelerometer_data)
+    print("Accelerometer Data:", accelerometer_data)
     # print("Gyroscope Data:", gyroscope_data)
-    # print("Velocity Data:", velocity_data)
-    # print("Position Data:", position_data)
+    print("Velocity Data:", velocity_data)
+    #print("Position Data:", position_data)
 
 def velocity(acceleration, time):
     velocity = np.zeros_like(acceleration)
@@ -129,9 +131,9 @@ def update_graph(num, data, line):
 
 def animate_graph(fig, data, ax):
     # Setting the axes properties
-    ax.set_xlim([np.min(data[0,:]), np.max(data[0,:])])
-    ax.set_ylim([np.min(data[1,:]), np.max(data[1,:])])
-    ax.set_zlim([np.min(data[2,:]), np.max(data[2,:])])
+    # ax.set_xlim([np.min(data[0,:]), np.max(data[0,:])])
+    # ax.set_ylim([np.min(data[1,:]), np.max(data[1,:])])
+    # ax.set_zlim([np.min(data[2,:]), np.max(data[2,:])])
 
     # Creating a line that we will update
     line, = ax.plot(data[0, 0:1], data[1, 0:1], data[2, 0:1], color='blue')
@@ -146,8 +148,10 @@ def display_graphs(velocity_data, position_data):
     graph_window.title("Simulation Results")
     graph_window.geometry("1200x600")
 
-    # redo_button = tk.Button(graph_window, text="Redo Simulation", command=lambda: redo())
-    # redo_button.pack()  # Adding padding for spacing
+    redo_button = tk.Button(graph_window, text="Redo Simulation", command=lambda: threading.Thread(target=redo).start())
+    redo_button.pack()  # Adding padding for spacing
+
+
 
     # Create and place velocity graph
     fig_velocity = Figure(figsize=(6, 6))
@@ -175,10 +179,11 @@ def display_graphs(velocity_data, position_data):
     graph_window.velocity_ani = animate_graph(fig_velocity, velocity_data, ax_velocity)
     graph_window.position_ani = animate_graph(fig_position, position_data, ax_position)
 
-async def redo():
-    await run()
-    pass
-
+def redo():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run())
+    loop.close()
 def start_simulation():
     bitch()
     analysis()

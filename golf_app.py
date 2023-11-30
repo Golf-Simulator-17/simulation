@@ -127,6 +127,9 @@ async def run():
             while RECEIVED == False:
                 ACK_1 = False
                 await receive_data(client)
+            
+            # await receive_data(client)
+            # await receive_data(client)
 
             await send_data(client, "cccccccccc")
             await send_data(client, "cccccccccc")
