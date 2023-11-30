@@ -20,6 +20,8 @@ UART_TX_CHAR_UUID = "49535343-1E4D-4BD9-BA61-23C647249616"
 RECEIVED = False
 ACK_1 = False
 ACK_2 = False
+devices_dict = {}
+devices_list = []
 
 async def scan(breadboard): 
     try:
@@ -34,6 +36,21 @@ async def scan(breadboard):
         return device
     except Exception as e:
         print(e)
+
+async def scan2():
+    dev = await discover()
+    for i in range(0,len(dev)):
+        #Print the devices discovered
+        # print("[" + str(i) + "]" + dev[i].address,dev[i].name,dev[i].metadata["uuids"])
+        #Put devices information into list
+        devices_dict[dev[i].address] = []
+        devices_dict[dev[i].address].append(dev[i].name)
+        devices_dict[dev[i].address].append(dev[i].metadata["uuids"])
+        if "RN4871" in dev[i].name:
+            print("[" + str(len(devices_list)) + "]" + dev[i].address,dev[i].name,dev[i].metadata["uuids"])
+            devices_list.append(dev[i].address)
+
+        
 
 async def send_data(client, data):
     # print("Sending data", data)
@@ -142,9 +159,24 @@ if __name__ == "__main__":
     t1 = threading.Thread(target=gui_process)
     t1.start()
     print("Finding device . . .")
-    device = asyncio.run(scan(breadboard=False))
-    print(device)
-    asyncio.run(run(device))
+
+    # Build an event loop
+    loop = asyncio.get_event_loop()
+    # Run the discover event
+    loop.run_until_complete(scan2())
+
+    # # let user chose the device
+    if len(devices_list) == 1:
+        index = 1
+    else:
+        index = input('please select device from 0 to ' + str(len(devices_list)) + ":")
+    index = int(index) - 1
+    address = devices_list[index]
+    print("Address is " + address)
+
+    # device = asyncio.run(address)
+    # print(device)
+    asyncio.run(run(address))
 
 
     # if os.path.exists(csv_filename):
