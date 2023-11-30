@@ -11,7 +11,7 @@ from datetime import datetime
 
 import threading
 
-
+golf_address = None
 UART_SERVICE_UUID = "49535343-FE7D-4AE5-8FA9-9FAFD205E455"
 UART_RX_CHAR_UUID = "49535343-8841-43F4-A8D4-ECBE34729BB3"
 UART_TX_CHAR_UUID = "49535343-1E4D-4BD9-BA61-23C647249616"
@@ -67,11 +67,11 @@ async def receive_data(client):
 def notification_handler(sender, data):
     global RECEIVED
     RECEIVED = True
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    csv_filename = f"hit_info/receivedData{timestamp}.csv"
+    #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    #csv_filename = f"hit_info/receivedData{timestamp}.csv"
+    csv_filename = "hitinfo.csv"
 
-
-    with open(csv_filename, mode='a', newline='') as csv_file:
+    with open(csv_filename, mode='w', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
 
         print(data)
@@ -108,10 +108,10 @@ def split_into_chunks(byte_array, chunk_size):
     return [byte_array[i:i+chunk_size] for i in range(0, len(byte_array), chunk_size)]
 
 
-async def run(device):
+async def run():
     global RECEIVED
     global ACK_1
-    async with BleakClient(str(device)) as client:
+    async with BleakClient(str(golf_address)) as client:
         facts = True
         while (facts):
             print("Device connected somewhat . . .! Waiting for hit . . .")
@@ -148,6 +148,7 @@ def gui_process():
                     start_simulation(file)
 
 def bitch():
+    global golf_address
     print("Finding device . . .")
     done = True
     # Build an event loop
@@ -164,13 +165,14 @@ def bitch():
             index = int(index)
             if(index != -1):
                 address = devices_list[index]
+                golf_address = address
                 print("Address is " + address)
                 print(type(address))
                 done = False
 
     # device = asyncio.run(address)
     # print(device)
-    asyncio.run(run(address))
+    asyncio.run(run())
 
 if __name__ == "__main__":
     print('''
