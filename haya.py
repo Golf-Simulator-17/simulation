@@ -1,153 +1,116 @@
-import asyncio
-import logging
-import struct
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import csv
-import os
-
-from readingData import *
-
-from bleak import BleakClient, BleakScanner, discover
-from datetime import datetime
-
+import numpy as np
+from scipy.integrate import simpson
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import tkinter as tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+from tkinter import ttk
+from PIL import Image, ImageTk
+from matplotlib.animation import FuncAnimation
+import asyncio
 import threading
 
-UART_SERVICE_UUID = "49535343-FE7D-4AE5-8FA9-9FAFD205E455"
-UART_RX_CHAR_UUID = "49535343-8841-43F4-A8D4-ECBE34729BB3"
-UART_TX_CHAR_UUID = "49535343-1E4D-4BD9-BA61-23C647249616"
+def update_position_velocity(initial_velocity, acceleration, time):
+    vx0, vy0, vz0 = initial_velocity
+    ax, ay, az = acceleration
 
-RECEIVED = False
-ACK_1 = False
-ACK_2 = False
+    # Update velocity
+    vx = vx0 + ax * time
+    vy = vy0 + ay * time
+    vz = vz0 + az * time
+
+    # Update position
+    x = vx0 * time + 0.5 * ax * time**2
+    y = vy0 * time + 0.5 * ay * time**2
+    z = vz0 * time + 0.5 * az * time**2
+
+    return (x, y, z), (vx, vy, vz)
+
+# Read values from the CSV file
 
 
-#
-async def send_data(client, data):
-    # print("Sending data", data)
-    if (client.is_connected):
-        await client.write_gatt_char(UART_RX_CHAR_UUID, data=data.encode(), response=None)
-    else:
-        raise Exception("Client not connected")
+def analysis():
+    accelerometer_data = []
+    gyroscope_data = []
+    # file_path = "/home/samantha/college/ece477/golf_application/hit_info/receivedData20231129_210425.csv"
+    file_path = "hitinfo.csv"
+    with open(file_path, newline='') as csvfile:
+        data_reader = csv.reader(csvfile)
+        temp_data = []
+        row_count = 1
+        for row in data_reader:
+            temp_data.append(float(row[0]))
+            if len(temp_data) == 3 and row_count < 60:
+                accelerometer_data.append(temp_data)
+                temp_data = []
+            elif len(temp_data) == 3 and row_count >= 60:
+                gyroscope_data.append(temp_data)
+                temp_data = []
+            row_count += 1
+
+    accelerometer_data = np.array(accelerometer_data)
+    print(accelerometer_data)
+    gyroscope_data = np.array(gyroscope_data)
+    print(gyroscope_data)
+    time_interval = 0.00015  # in seconds
+    time_array = np.arange(0, len(accelerometer_data) * time_interval, time_interval)
+    print(time_array)
+    # Calculate velocity
+    velocity_data = velocity(accelerometer_data, time_array)    
+    print("MAX VELOCITY: " + str(accelerometer_data))
     
-async def receive_data(client):
-    await client.start_notify(UART_TX_CHAR_UUID, notification_handler)
-    await asyncio.sleep(1)
-    await client.stop_notify(UART_TX_CHAR_UUID)
+    #Calculate Position 
+    position_data = position(velocity_data, time_array)
 
-def notification_handler(sender, data):
-    global RECEIVED
-    RECEIVED = True
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    csv_filename = f"hit_info/receivedData{timestamp}.csv"
+    # Hardcoded initial velocity and acceleration values
+    initial_velocity = (max(abs(accelerometer_data[:][1]))*0.3, max(abs(accelerometer_data[:][1]))*0.3, max(abs(accelerometer_data[:][1]))*0.3)
+    print("INITAL VELO:" + str(initial_velocity))
+    acceleration = (-0.26*9.6, -9.8, -0.26*9.8)
 
+# Time for which you want to update the position and velocity
+    time = 5
 
-    with open(csv_filename, mode='a', newline='') as csv_file:
-        csv_writer = csv.writer(csv_file)
+# Update the position and velocity based on the given time
+    final_position, final_velocity = update_position_velocity(initial_velocity, acceleration, time)
 
-        print(data)
-        for x in split_into_chunks(data, 4):
-            original_values = [str(y) for y in x]
-            hex_string = ''.join('{:02x}'.format(y) for y in x)
-            hex_bytes = bytes.fromhex(hex_string)
-            decimal_value = struct.unpack('f', hex_bytes)[0]
-            csv_writer.writerow([decimal_value])
+# Create a 3D plot
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
 
-def split_into_chunks(byte_array, chunk_size):
-    return [byte_array[i:i+chunk_size] for i in range(0, len(byte_array), chunk_size)]
+# Plot the trajectory
+    ax.plot([0, final_position[0]], [0, final_position[1]], [0, final_position[2]], marker='o')
 
-def gui_process():
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    files_processed = []
-    while True:
-        for file in os.listdir("hit_info"):
-            start = file.find("_") + 1
-            number = file[start:-4]
-            # print("Number:", numb?er)
-            if int (number) > int(timestamp):
-                if file not in files_processed:
-                    files_processed.append(file)
-                    print("Processing file:", file)
-                    start_simulation(file)
+# Set axis labels
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
 
-#ACK Stuff
-def start_ack_handler(sender, data):
-    global ACK_1
-    # print(data)
-    if data == b'ack1':
-        ACK_1 = True
+# Set plot title
+    ax.set_title('Object Trajectory')
 
-def end_ack_handler(sender, data):
-    global ACK_2
-    print(data)
-    if data == b'ack2':
-        ACK_2 = True
+# Show the plot
+    plt.show()
 
-async def recevie_ack_1(client):
-    await client.start_notify(UART_TX_CHAR_UUID, start_ack_handler)
-    await asyncio.sleep(1)
-    await client.stop_notify(UART_TX_CHAR_UUID)
+# Print the final position and velocity
+    # print(f"Final Position: {final_position}")
+    # print(f"Final Velocity: {final_velocity}")
 
-async def recevie_ack_2(client):
-    await client.start_notify(UART_TX_CHAR_UUID, end_ack_handler)
-    await asyncio.sleep(1)
-    await client.stop_notify(UART_TX_CHAR_UUID)
+def position(velocity, time):
+    position = np.zeros_like(velocity)
+    for i in range(1, len(time)):
+        for j in range(3):  # 0:x, 1:y, 2:z
+            position[i, j] = simpson(velocity[:i, j], time[:i])
+    return position
 
-async def scan(breadboard): 
-    try:
-        if (False):
-            device = await BleakScanner.find_device_by_name("PmodBLE-66FD")
-        else:
-            device = await BleakScanner.find_device_by_name("RN4871-FB29")
-        
-        if not device:
-            raise Exception("Could not find device")
+def velocity(acceleration, time):
+    velocity = np.zeros_like(acceleration)
+    for i in range(1, len(time)):
+        for j in range(3):  # 0:x, 1:y, 2:z
+            velocity[i, j] = simpson(acceleration[:i, j], time[:i])
+    return velocity
 
-        return device
-    except Exception as e:
-        print(e)
-
-
-#CONNECTING TO DEVICE
-async def run(device):
-    global RECEIVED
-    global ACK_1
-    print("test")
-    async with BleakClient("884A8A08-4F22-6E5B-ED06-A6A4F2895B01") as client:
-        while (True):
-            print(client.is_connected)
-            print("Device connected somewhat . . .! Waiting for hit . . .")
-            while ACK_1 == False:
-                RECEIVED = False
-                print("Sending iiiii")
-                await send_data(client, "iiiiiiiiii")
-                await recevie_ack_1(client)
-
-            print("Device connected! Waiting for hit . . .")
-            while RECEIVED == False:
-                ACK_1 = False
-                await receive_data(client)
-
-            await send_data(client, "cccccccccc")
-            await send_data(client, "cccccccccc")
-            await send_data(client, "cccccccccc")
-
-            print("Hit received! Simulation time!")
-
-
-
-if __name__ == "__main__":
-    print('''
-    ###     ###    ###         ###               ###    ###    #   ##    #  ##   ###         ###   ######     ###       ###  
-   ####    #####  ###         ####              ####  ####    ### ###   ##  ##  ###         ####  ######     #####     ####  
-  ##  #   ##  ##   ##        ##                ##  #    ##    #######   ##  ##   ##        ## ##    ##      ##  ##    ## ##  
- ##      ##   ##   ##       ##                ##        ##    ## # ##   ##  ##   ##       ##  ##    ##     ##   ##   ##  ##  
-##  ###  ##   ##   ##   #  ######            #######    ##    ##   ##  ###  ##   ##   #  #######    ##     ##   ##  #####    
-##    #  ##  ##    ##  ##  ##                     ##    ##    ##   ##  ##   ##   ##  ##  ##   ##    ##     ##  ##   ##  ##   
-#######   ####    #######  ##                #######    ###   ##   ##  #######  #######  ##   ##    ###     ####    ##   ##  
-                                                       ##                                          ##                       
-          ''')
-    t1 = threading.Thread(target=gui_process)
-    t1.start()
-    print("Finding device . . .")
-    device = asyncio.run(scan(breadboard=False))
-    print(device)
-    asyncio.run(run(device))
+analysis()

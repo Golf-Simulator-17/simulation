@@ -207,8 +207,6 @@ def display_graphs(velocity_data, position_data):
     redo_button = tk.Button(graph_window, text="Redo Simulation", command=lambda: threading.Thread(target=redo).start())
     redo_button.pack()  # Adding padding for spacing
 
-
-
     # Create and place velocity graph
     fig_velocity = Figure(figsize=(6, 6))
     ax_velocity = fig_velocity.add_subplot(111, projection='3d')
@@ -216,6 +214,7 @@ def display_graphs(velocity_data, position_data):
     ax_velocity.set_ylabel('Y Velocity')
     ax_velocity.set_zlabel('Z Velocity')
     ax_velocity.set_title('3D Velocity Trajectory')
+    ax_velocity.plot(velocity_data[:, 0], velocity_data[:, 1], velocity_data[:, 2], marker='o')  # Plot velocity data
     canvas_velocity = FigureCanvasTkAgg(fig_velocity, master=graph_window)
     canvas_velocity.draw()
     canvas_velocity.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -227,14 +226,10 @@ def display_graphs(velocity_data, position_data):
     ax_position.set_ylabel('Y Position')
     ax_position.set_zlabel('Z Position')
     ax_position.set_title('3D Position Trajectory')
+    ax_position.plot(position_data[:, 0], position_data[:, 1], position_data[:, 2], marker='o')  # Plot position data
     canvas_position = FigureCanvasTkAgg(fig_position, master=graph_window)
     canvas_position.draw()
     canvas_position.get_tk_widget().pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-
-    #adding graph window to actualyl show the lines moving
-    graph_window.velocity_ani = animate_graph(fig_velocity, velocity_data, ax_velocity)
-    graph_window.position_ani = animate_graph(fig_position, position_data, ax_position)
-
 def redo():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
