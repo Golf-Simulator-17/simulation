@@ -240,6 +240,7 @@ def redo():
     asyncio.set_event_loop(loop)
     loop.run_until_complete(run())
     loop.close()
+
 def start_simulation():
     bitch()
     analysis()
