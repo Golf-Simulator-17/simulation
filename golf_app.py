@@ -85,7 +85,9 @@ async def receive_data(client):
             hex_string = ''.join('{:02x}'.format(y) for y in x)
             hex_bytes = bytes.fromhex(hex_string)
             decimal_value = struct.unpack('f', hex_bytes)[0]
+            print(hex_bytes)
             csv_writer.writerow([decimal_value])
+    data_total.clear()
 
 def notification_handler(sender, data):
     global RECEIVED
@@ -93,7 +95,7 @@ def notification_handler(sender, data):
     # global num_received
 
     # csv_filename = "hitinfo.csv"
-    print(data)
+    # print(data)
     data_total.extend(data)
     print(len(data_total) / 4)
 
@@ -107,7 +109,7 @@ def start_ack_handler(sender, data):
 
 def end_ack_handler(sender, data):
     global ACK_2
-    print(data)
+    # print(data)
     if data == b'ack2':
         ACK_2 = True
 
