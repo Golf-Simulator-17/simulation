@@ -242,7 +242,7 @@ def redo():
     loop.close()
 
 def start_simulation():
-    bitch()
+    run_bluetooth()
     analysis()
     pass
 

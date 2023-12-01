@@ -10,6 +10,7 @@ from bleak import BleakClient, BleakScanner, discover
 from datetime import datetime
 
 import threading
+import os
 
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 csv_filename = f"hit_info/receivedData{timestamp}.csv"
@@ -68,17 +69,18 @@ async def send_data(client, data):
         raise Exception("Client not connected")
     
 async def receive_data(client):
-    while (len(data_total) < 120 * 4):
-        await client.start_notify(UART_TX_CHAR_UUID, notification_handler)
-        await asyncio.sleep(1)
-        await client.stop_notify(UART_TX_CHAR_UUID)
+    # while (len(data_total) < 120 * 4):
+    await client.start_notify(UART_TX_CHAR_UUID, notification_handler)
+    await asyncio.sleep(1)
+    await client.stop_notify(UART_TX_CHAR_UUID)
     file_name = "hitinfo.csv"
+    if os.path.exists(file_name):
+        os.remove(file_name)
     with open(file_name, mode='w', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
 
         print(data_total)
         for x in split_into_chunks(data_total, 4):
-            # num_received += 1
             original_values = [str(y) for y in x]
             hex_string = ''.join('{:02x}'.format(y) for y in x)
             hex_bytes = bytes.fromhex(hex_string)
@@ -171,7 +173,7 @@ def gui_process():
                     print("Processing file:", file)
                     start_simulation(file)
 
-def bitch():
+def run_bluetooth():
     global golf_address
     print("Finding device . . .")
     done = True
