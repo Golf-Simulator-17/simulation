@@ -11,10 +11,15 @@ from datetime import datetime
 
 import threading
 
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+csv_filename = f"hit_info/receivedData{timestamp}.csv"
+
 golf_address = None
 UART_SERVICE_UUID = "49535343-FE7D-4AE5-8FA9-9FAFD205E455"
 UART_RX_CHAR_UUID = "49535343-8841-43F4-A8D4-ECBE34729BB3"
 UART_TX_CHAR_UUID = "49535343-1E4D-4BD9-BA61-23C647249616"
+
+num_received = 0
 
 
 RECEIVED = False
@@ -46,8 +51,8 @@ async def scan2():
         devices_dict[dev[i].address] = []
         devices_dict[dev[i].address].append(dev[i].name)
         devices_dict[dev[i].address].append(dev[i].metadata["uuids"])
-        if "RN4871" in dev[i].name or "PmodBLE" in dev[i].name:
-            print("[" + str(len(devices_list)) + "]" + dev[i].address,dev[i].name,dev[i].metadata["uuids"])
+        #if "RN4871" in dev[i].name or "PmodBLE" in dev[i].name:
+        print("[" + str(len(devices_list)) + "]" + dev[i].address,dev[i].name,dev[i].metadata["uuids"])
         devices_list.append(dev[i].address)
 
         
@@ -60,22 +65,24 @@ async def send_data(client, data):
         raise Exception("Client not connected")
     
 async def receive_data(client):
-    await client.start_notify(UART_TX_CHAR_UUID, notification_handler)
-    await asyncio.sleep(1)
-    await client.stop_notify(UART_TX_CHAR_UUID)
+    while (num_received < 120):
+        await client.start_notify(UART_TX_CHAR_UUID, notification_handler)
+        await asyncio.sleep(1)
+        await client.stop_notify(UART_TX_CHAR_UUID)
 
 def notification_handler(sender, data):
     global RECEIVED
     RECEIVED = True
-    #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    #csv_filename = f"hit_info/receivedData{timestamp}.csv"
-    csv_filename = "hitinfo.csv"
+    global num_received
 
-    with open(csv_filename, mode='w', newline='') as csv_file:
+    # csv_filename = "hitinfo.csv"
+
+    with open(csv_filename, mode='a', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
 
         print(data)
         for x in split_into_chunks(data, 4):
+            num_received += 1
             original_values = [str(y) for y in x]
             hex_string = ''.join('{:02x}'.format(y) for y in x)
             hex_bytes = bytes.fromhex(hex_string)
