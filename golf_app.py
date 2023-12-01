@@ -93,8 +93,6 @@ def notification_handler(sender, data):
     RECEIVED = True
     # global num_received
 
-    # csv_filename = "hitinfo.csv"
-    # print(data)
     data_total.extend(data)
     print(len(data_total) / 4)
 
@@ -102,13 +100,11 @@ def notification_handler(sender, data):
 
 def start_ack_handler(sender, data):
     global ACK_1
-    # print(data)
     if data == b'ack1':
         ACK_1 = True
 
 def end_ack_handler(sender, data):
     global ACK_2
-    # print(data)
     if data == b'ack2':
         ACK_2 = True
 
@@ -144,7 +140,8 @@ async def run():
             print("Device connected! Waiting for hit . . .")
             while RECEIVED == False:
                 ACK_1 = False
-                await receive_data(client)
+                
+                await receive_data(client) 
             
             # await receive_data(client)
             # await receive_data(client)
