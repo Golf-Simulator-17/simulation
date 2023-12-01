@@ -73,7 +73,7 @@ async def receive_data(client):
         await asyncio.sleep(1)
         await client.stop_notify(UART_TX_CHAR_UUID)
     file_name = "hitinfo.csv"
-    with open(file_name, mode='a', newline='') as csv_file:
+    with open(file_name, mode='w', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
 
         print(data_total)

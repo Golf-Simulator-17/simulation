@@ -25,10 +25,10 @@ def analysis():
         row_count = 1
         for row in data_reader:
             temp_data.append(float(row[0]))
-            if len(temp_data) == 3 and row_count < 30:
+            if len(temp_data) == 3 and row_count < 60:
                 accelerometer_data.append(temp_data)
                 temp_data = []
-            elif len(temp_data) == 3 and row_count >= 30:
+            elif len(temp_data) == 3 and row_count >= 60:
                 gyroscope_data.append(temp_data)
                 temp_data = []
             row_count += 1
