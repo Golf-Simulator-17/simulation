@@ -153,7 +153,7 @@ async def run():
             print("Hit received! Simulation time!")
             facts = False
     if(connected == False):
-        run(device)
+        run()
 
        
 
