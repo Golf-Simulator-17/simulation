@@ -46,8 +46,8 @@ async def scan2():
         devices_dict[dev[i].address] = []
         devices_dict[dev[i].address].append(dev[i].name)
         devices_dict[dev[i].address].append(dev[i].metadata["uuids"])
-        # if "RN4871" in dev[i].name:
-        print("[" + str(len(devices_list)) + "]" + dev[i].address,dev[i].name,dev[i].metadata["uuids"])
+        if "RN4871" in dev[i].name or "PmodBLE" in dev[i].name:
+            print("[" + str(len(devices_list)) + "]" + dev[i].address,dev[i].name,dev[i].metadata["uuids"])
         devices_list.append(dev[i].address)
 
         
@@ -198,7 +198,7 @@ if __name__ == "__main__":
 
     # device = asyncio.run(address)
     # print(device)
-    asyncio.run(run(address))
+    # asyncio.run(run(address))
 
 
     # if os.path.exists(csv_filename):

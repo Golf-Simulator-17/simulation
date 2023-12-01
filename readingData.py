@@ -15,6 +15,7 @@ from golf_app import *
 def analysis():
     accelerometer_data = []
     gyroscope_data = []
+    # file_path = "/home/samantha/college/ece477/golf_application/hit_info/receivedData20231129_210425.csv"
     file_path = "hitinfo.csv"
     with open(file_path, newline='') as csvfile:
         data_reader = csv.reader(csvfile)
@@ -31,16 +32,71 @@ def analysis():
             row_count += 1
 
     accelerometer_data = np.array(accelerometer_data)
+    print(accelerometer_data)
     gyroscope_data = np.array(gyroscope_data)
-    time_interval = 0.1  # in seconds
+    print(gyroscope_data)
+    time_interval = 0.00015  # in seconds
     time_array = np.arange(0, len(accelerometer_data) * time_interval, time_interval)
-
+    print(time_array)
     # Calculate velocity
     velocity_data = velocity(accelerometer_data, time_array)    
+    print(velocity_data)
     #graphVelocity(velocity_data)
     
     #Calculate Position 
     position_data = position(velocity_data, time_array)
+    print(position_data)
+
+    fig,(axa,axv,axp,aya,ayv,ayp,aza,azv,azp) = plt.subplots(9)
+
+    axa.plot(time_array, accelerometer_data[:,0])
+    axa.set_xlabel("Time (ms)")
+    axa.set_ylabel("Acceleration (m^2/s)")
+    axa.set_title("Acceleration vs Time X-axis")
+
+    axv.plot(time_array, velocity_data[:,0])
+    axv.set_xlabel("Time (ms)")
+    axv.set_ylabel("Velocity (m/s)")
+    axv.set_title("Velocity vs Time X-axis")
+
+    axp.plot(time_array, position_data[:,0])
+    axp.set_xlabel("Time (ms)")
+    axp.set_ylabel("Position (m) X-Axis")
+    axp.set_title("Time vs Position X-axis")
+
+    aya.plot(time_array, accelerometer_data[:,1])
+    aya.set_xlabel("Time (ms)")
+    aya.set_ylabel("Acceleration (m^2/s)")
+    aya.set_title("Acceleration vs Time Y-axis")
+
+    ayv.plot(time_array, velocity_data[:,1])
+    ayv.set_xlabel("Time (ms)")
+    ayv.set_ylabel("Velocity (m/s)")
+    ayv.set_title("Velocity vs Time Y-axis")
+
+    ayp.plot(time_array, position_data[:,1])
+    ayp.set_xlabel("Time (ms)")
+    ayp.set_ylabel("Position (m) Y-Axis")
+    ayp.set_title("Time vs Position Y-axis")
+
+    aza.plot(time_array, accelerometer_data[:,2])
+    aza.set_xlabel("Time (ms)")
+    aza.set_ylabel("Acceleration (m^2/s)")
+    aza.set_title("Acceleration vs Time Z-axis")
+
+    azv.plot(time_array, velocity_data[:,2])
+    azv.set_xlabel("Time (ms)")
+    azv.set_ylabel("Velocity (m/s)")
+    azv.set_title("Velocity vs Time Z-axis")
+
+    azp.plot(time_array, position_data[:,2])
+    azp.set_xlabel("Time (ms)")
+    azp.set_ylabel("Position (m) Z-Axis")
+    azp.set_title("Time vs Position X-axis")
+
+    plt.show()
+
+    # return
     #graphPosition(position_data)
     # # Sample data for velocity
     # time = np.linspace(0, 5, num=100)  # Time from 0 to 5 seconds
@@ -128,10 +184,10 @@ def update_graph(num, data, line):
     return line,
 
 def animate_graph(fig, data, ax):
-    # Setting the axes properties
-    ax.set_xlim([np.min(data[0,:]), np.max(data[0,:])])
-    ax.set_ylim([np.min(data[1,:]), np.max(data[1,:])])
-    ax.set_zlim([np.min(data[2,:]), np.max(data[2,:])])
+    # # Setting the axes properties
+    # ax.set_xlim([np.min(data[0,:]), np.max(data[0,:])])
+    # ax.set_ylim([np.min(data[1,:]), np.max(data[1,:])])
+    # ax.set_zlim([np.min(data[2,:]), np.max(data[2,:])])
 
     # Creating a line that we will update
     line, = ax.plot(data[0, 0:1], data[1, 0:1], data[2, 0:1], color='blue')
@@ -215,4 +271,5 @@ def run_gui():
 if __name__ == "__main__":
 
     run_gui()
+    # analysis()
     
