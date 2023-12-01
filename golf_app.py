@@ -85,7 +85,6 @@ async def receive_data(client):
             hex_string = ''.join('{:02x}'.format(y) for y in x)
             hex_bytes = bytes.fromhex(hex_string)
             decimal_value = struct.unpack('f', hex_bytes)[0]
-            print(hex_bytes)
             csv_writer.writerow([decimal_value])
     data_total.clear()
 
