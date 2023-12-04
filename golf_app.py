@@ -55,8 +55,9 @@ async def scan2():
         devices_dict[dev[i].address] = []
         devices_dict[dev[i].address].append(dev[i].name)
         devices_dict[dev[i].address].append(dev[i].metadata["uuids"])
-        # if "RN4871" in dev[i].name or "PmodBLE" in dev[i].name:
-        print("[" + str(len(devices_list)) + "]" + dev[i].address,dev[i].name,dev[i].metadata["uuids"])
+        if dev[i].name:
+            if "RN4871" in dev[i].name or "PmodBLE" in dev[i].name:
+                print("[" + str(len(devices_list)) + "]" + dev[i].address,dev[i].name,dev[i].metadata["uuids"])
         devices_list.append(dev[i].address)
 
         
@@ -122,7 +123,7 @@ def split_into_chunks(byte_array, chunk_size):
     return [byte_array[i:i+chunk_size] for i in range(0, len(byte_array), chunk_size)]
 
 
-async def run():
+async def run(root):
     global RECEIVED
     global ACK_1
     async with BleakClient(str(golf_address)) as client:
@@ -138,13 +139,11 @@ async def run():
                 await recevie_ack_1(client)
 
             print("Device connected! Waiting for hit . . .")
+            root.after(0, lambda: root.status_label.config(text="Device connected! Waiting for hit . . ."))
             while RECEIVED == False:
                 ACK_1 = False
                 
                 await receive_data(client) 
-            
-            # await receive_data(client)
-            # await receive_data(client)
 
             await send_data(client, "cccccccccc")
             await send_data(client, "cccccccccc")
@@ -171,7 +170,7 @@ def gui_process():
                     print("Processing file:", file)
                     start_simulation(file)
 
-def run_bluetooth():
+def run_bluetooth(root):
     global golf_address
     print("Finding device . . .")
     done = True
@@ -196,7 +195,7 @@ def run_bluetooth():
 
     # device = asyncio.run(address)
     # print(device)
-    asyncio.run(run())
+    asyncio.run(run(root))
 
 if __name__ == "__main__":
     print('''
